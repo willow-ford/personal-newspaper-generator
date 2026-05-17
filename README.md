@@ -1,4 +1,6 @@
-# 📰 auto-generate-my-news
+# 📰 personal-newspaper-generator
+
+![構成](./img/overview.png)
 
 > **毎朝、あなたの代わりに IT / AI ニュースを読んで Notion にまとめてくれるエージェント。**
 
