@@ -1,4 +1,6 @@
-# 📰 auto-generate-my-news
+# 📰 personal-newspaper-generator
+
+![構成](./img/overview.png)
 
 > **毎朝、あなたの代わりに IT / AI ニュースを読んで Notion にまとめてくれるエージェント。**
 
@@ -6,7 +8,7 @@
 
 ## ✨ Overview
 
-毎朝 6:00 に Google App Script (GAS) がトリガーを起動し、Claude API が Web 検索から Notion ページ作成まですべて自動で処理します。新しいページが作成されると LINE で通知が届くので、朝コーヒーを飲みながらサマリーを読むだけでOK。
+毎朝 6:00 に Google App Script (GAS) がトリガーを起動し、Claude API が Web 検索から Notion ページ作成まですべて自動で処理します。新しいページが作成されると Webhook で通知が届くので、朝コーヒーを飲みながらサマリーを読むだけでOK。
 
 ---
 
@@ -24,7 +26,7 @@ Claude API (claude-sonnet-4-6)
           │
           │  Notion ページ URL
           ▼
-        LINE Notify 📲
+        Webhook 通知 📲
 ```
 
 ---
@@ -36,7 +38,7 @@ Claude API (claude-sonnet-4-6)
 | Trigger | Google Apps Script | 定期実行（毎朝 6:00） |
 | Agent | Claude API (`claude-sonnet-4-6`) | ニュース収集 & Notion 保存 |
 | Storage | Notion (via MCP) | 日付ごとにページ自動作成 |
-| Notify | LINE Notify | Notion URL を通知 |
+| Notify | 任意の Webhook | Notion URL を通知 |
 | Deploy | clasp + GitHub Actions | GAS の CI/CD |
 
 ---
@@ -81,6 +83,7 @@ cd agent && npm install
 ```bash
 cd gas
 clasp login
+# scriptId は gas/.clasp.json の REPLACE_WITH_YOUR_SCRIPT_ID を実値に置換
 clasp push
 ```
 
@@ -91,7 +94,9 @@ clasp push
 | 変数名 | 説明 |
 |---|---|
 | `ANTHROPIC_API_KEY` | Claude API キー |
-| `LINE_NOTIFY_TOKEN` | LINE Notify トークン |
+| `AGENT_ENDPOINT_URL` | GAS から呼び出す Agent エンドポイント URL |
+| `AGENT_ENDPOINT_TOKEN` | Agent エンドポイント用 Bearer トークン |
+| `NOTIFICATION_WEBHOOK_URL` | 通知送信先の Webhook URL（任意） |
 
 ---
 

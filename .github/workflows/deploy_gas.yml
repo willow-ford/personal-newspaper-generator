@@ -1,0 +1,50 @@
+name: Deploy GAS
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - "gas/**"
+      - ".github/workflows/deploy_gas.yml"
+  workflow_dispatch:
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v5
+
+      - uses: actions/setup-node@v6
+        with:
+          node-version: "24"
+
+      - name: Install clasp
+        run: npm install -g @google/clasp@2.4.2
+
+      - name: Configure clasp credentials
+        run: |
+          cat > ~/.clasprc.json << 'EOF'
+          {
+            "token": {
+              "access_token": "${{ secrets.CLASP_ACCESS_TOKEN }}",
+              "refresh_token": "${{ secrets.CLASP_REFRESH_TOKEN }}",
+              "scope": "https://www.googleapis.com/auth/script.projects https://www.googleapis.com/auth/script.deployments",
+              "token_type": "Bearer",
+              "expiry_date": 0
+            }
+          }
+          EOF
+
+      - name: Write script id
+        run: |
+          cat > gas/.clasp.json << 'EOF'
+          {
+            "scriptId": "${{ secrets.CLASP_SCRIPT_ID }}",
+            "rootDir": "./"
+          }
+          EOF
+
+      - name: Push to Google Apps Script
+        working-directory: gas
+        run: clasp push -f
