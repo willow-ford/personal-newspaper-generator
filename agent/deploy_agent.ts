@@ -1,5 +1,7 @@
 import "dotenv/config";
 
+import { pathToFileURL } from "node:url";
+
 import { MODEL, SYSTEM_PROMPT, NOTION_MCP_URL } from "./agent_config.js";
 
 type AgentDefinition = {
@@ -9,7 +11,7 @@ type AgentDefinition = {
   mcpServers: Array<{ type: "url"; url: string }>;
 };
 
-function buildAgentDefinition(): AgentDefinition {
+export function buildAgentDefinition(): AgentDefinition {
   // 配備対象となるエージェント定義を1か所で組み立てる。
   return {
     name: "daily-news-notion-agent",
@@ -19,7 +21,7 @@ function buildAgentDefinition(): AgentDefinition {
   };
 }
 
-async function deploy() {
+export async function deploy() {
   const endpoint = process.env.AGENT_DEPLOY_ENDPOINT;
   const token = process.env.AGENT_DEPLOY_TOKEN;
   const definition = buildAgentDefinition();
@@ -51,7 +53,9 @@ async function deploy() {
   }
 }
 
-deploy().catch((error) => {
-  console.error(error);
-  process.exit(1);
-});
+if (process.argv[1] && import.meta.url === pathToFileURL(process.argv[1]).href) {
+  deploy().catch((error) => {
+    console.error(error);
+    process.exit(1);
+  });
+}
