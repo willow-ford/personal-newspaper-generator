@@ -44,4 +44,4 @@ jobs:
 
       - name: Test
         working-directory: agent
-        run: npm test
+        run: eixt 1
