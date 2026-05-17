@@ -15,11 +15,17 @@ describe("buildUserPrompt", () => {
 
 describe("buildAgentDefinition", () => {
   it("Agent定義を設定値から組み立てる", () => {
-    expect(buildAgentDefinition()).toEqual({
+    const definition = buildAgentDefinition();
+
+    expect(definition).toEqual({
       name: "daily-news-notion-agent",
       model: MODEL,
-      systemPrompt: SYSTEM_PROMPT,
+      systemPrompt: expect.any(String),
       mcpServers: [{ type: "url", url: NOTION_MCP_URL }],
     });
+    expect(definition.systemPrompt).toContain(SYSTEM_PROMPT);
+    expect(definition.systemPrompt).toContain("Target date: {{TARGET_DATE}}");
+    expect(definition.systemPrompt).toContain("Collect latest IT news (at least 5 items).");
+    expect(definition.systemPrompt).toContain("Collect latest AI news (at least 5 items).");
   });
 });

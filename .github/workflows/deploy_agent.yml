@@ -23,6 +23,14 @@ jobs:
         working-directory: agent
         run: npm ci
 
+      - name: Build
+        working-directory: agent
+        run: npm run build
+
+      - name: Test
+        working-directory: agent
+        run: npm test
+
       - name: Deploy agent definition
         working-directory: agent
         run: npm run deploy

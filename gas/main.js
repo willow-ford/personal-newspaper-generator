@@ -2,10 +2,13 @@ function runDailyNewsCollection() {
   const props = PropertiesService.getScriptProperties();
   const endpoint = props.getProperty("AGENT_ENDPOINT_URL");
   const token = props.getProperty("AGENT_ENDPOINT_TOKEN");
-  const lineToken = props.getProperty("LINE_NOTIFY_TOKEN");
+  const notificationWebhookUrl = props.getProperty("NOTIFICATION_WEBHOOK_URL");
 
   if (!endpoint) {
     throw new Error("AGENT_ENDPOINT_URL is not configured.");
+  }
+  if (!token) {
+    throw new Error("AGENT_ENDPOINT_TOKEN is not configured.");
   }
 
   const payload = {
@@ -19,11 +22,9 @@ function runDailyNewsCollection() {
     contentType: "application/json",
     payload: JSON.stringify(payload),
     muteHttpExceptions: true,
-    headers: token
-      ? {
-          Authorization: "Bearer " + token,
-        }
-      : {},
+    headers: {
+      Authorization: "Bearer " + token,
+    },
   };
 
   const response = UrlFetchApp.fetch(endpoint, options);
@@ -39,31 +40,31 @@ function runDailyNewsCollection() {
     const data = JSON.parse(body);
     notionUrl = data.notionUrl || data.url || "";
   } catch (_error) {
-    // レスポンス本文がプレーンテキストのケースはそのまま続行する。
+    // レスポンス本文がプレーンテキストなら URL として扱う。
+    notionUrl = body.trim();
   }
 
-  if (lineToken && notionUrl) {
-    notifyLine(lineToken, notionUrl);
+  if (notificationWebhookUrl && notionUrl) {
+    notifyWebhook(notificationWebhookUrl, notionUrl);
   }
 
   Logger.log("News collection finished: " + (notionUrl || "no-url-returned"));
 }
 
-function notifyLine(lineToken, notionUrl) {
-  // Notion URL を1メッセージで通知する。
+function notifyWebhook(webhookUrl, notionUrl) {
+  // 任意のWebhookへ Notion URL を通知する。
   const options = {
     method: "post",
-    headers: {
-      Authorization: "Bearer " + lineToken,
-    },
-    payload: {
-      message: "本日のニュースまとめを作成しました。\n" + notionUrl,
-    },
+    contentType: "application/json",
+    payload: JSON.stringify({
+      text: "本日のニュースまとめを作成しました。\n" + notionUrl,
+      notionUrl: notionUrl,
+    }),
     muteHttpExceptions: true,
   };
 
-  const response = UrlFetchApp.fetch("https://notify-api.line.me/api/notify", options);
+  const response = UrlFetchApp.fetch(webhookUrl, options);
   if (response.getResponseCode() >= 300) {
-    Logger.log("LINE notify failed: " + response.getContentText());
+    Logger.log("Webhook notify failed: " + response.getContentText());
   }
 }
